@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivasri — AI Workflow Specialist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #080C12;
+    --surface:  #0D1420;
+    --card:     #111827;
+    --border:   #1E2D42;
+    --blue:     #3B82F6;
+    --blue-dim: #1D4ED8;
+    --cyan:     #06B6D4;
+    --text:     #E8EDF5;
+    --muted:    #8B9CB8;
+    --accent:   #F0F4FF;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,12,18,0.9);
+    backdrop-filter: blur(16px);
+  }
+  .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; letter-spacing: 0.08em; color: var(--accent); }
+  .nav-logo span { color: var(--blue); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--blue); }
+  .nav-cta { background: var(--blue); color: #fff; font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 22px; border: none; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+  .nav-cta:hover { background: var(--cyan); transform: translateY(-1px); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); max-width: 480px; width: 90%; padding: 48px; position: relative; animation: modalIn 0.25s ease; }
+  @keyframes modalIn { from { opacity:0; transform: translateY(20px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; transition: color 0.2s; }
+  .modal-close:hover { color: var(--text); }
+  .modal-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--accent); margin-bottom: 12px; }
+  .modal-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .modal-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 12px; transition: border-color 0.2s; }
+  .modal-row:hover { border-color: var(--blue); }
+  .modal-row-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); flex: 1; letter-spacing: 0.04em; }
+  .copy-btn { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); background: rgba(59,130,246,0.1); border: none; padding: 5px 10px; cursor: pointer; transition: background 0.2s; }
+  .copy-btn:hover { background: rgba(59,130,246,0.25); }
+  .copy-btn.copied { color: var(--cyan); }
+  .modal-linkedin { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); padding: 14px 18px; text-decoration: none; transition: border-color 0.2s; }
+  .modal-linkedin:hover { border-color: var(--blue); }
+  .modal-linkedin span { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); flex: 1; }
+  .modal-linkedin em { font-style: normal; font-size: 0.75rem; color: var(--blue); }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+
+  /* HERO */
+  #hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 0 80px; position: relative; overflow: hidden; }
+  .hero-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%); top: 10%; left: -100px; pointer-events: none; }
+  .hero-glow-2 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%); bottom: 10%; right: -50px; pointer-events: none; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: var(--blue); font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 16px; margin-bottom: 32px; animation: fadeUp 0.6s ease both; }
+  .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(3rem,7vw,5.5rem); line-height: 1.0; letter-spacing: -0.02em; color: var(--accent); margin-bottom: 28px; animation: fadeUp 0.6s 0.1s ease both; }
+  h1 em { font-style: normal; color: var(--blue); }
+  .hero-sub { font-size: 1.15rem; color: var(--muted); max-width: 580px; line-height: 1.75; margin-bottom: 48px; animation: fadeUp 0.6s 0.2s ease both; }
+  .hero-sub strong { color: var(--text); font-weight: 500; }
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; animation: fadeUp 0.6s 0.3s ease both; }
+  .btn-primary { background: var(--blue); color: #fff; font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 15px 32px; border: none; cursor: pointer; transition: all 0.2s; display: inline-block; }
+  .btn-primary:hover { background: var(--cyan); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.35); }
+  .btn-ghost { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 15px 32px; text-decoration: none; border: 1px solid var(--border); transition: all 0.2s; display: inline-block; cursor: pointer; background: none; }
+  .btn-ghost:hover { color: var(--text); border-color: var(--blue); }
+  .hero-stats { margin-top: 72px; display: grid; grid-template-columns: repeat(3,auto); border: 1px solid var(--border); width: fit-content; animation: fadeUp 0.6s 0.4s ease both; }
+  .stat { padding: 24px 40px; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: var(--blue); display: block; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+  /* SECTION HEADERS */
+  .section-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content:''; flex:1; height:1px; background: linear-gradient(to right, var(--border), transparent); max-width:120px; }
+  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(1.8rem,4vw,2.8rem); line-height: 1.15; color: var(--accent); margin-bottom: 16px; }
+  .section-desc { color: var(--muted); font-size: 1.05rem; max-width: 560px; line-height: 1.75; }
+
+  /* PROBLEMS */
+  #problems { padding: 120px 0; }
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 64px; }
+  .problem-item { background: var(--surface); padding: 40px; position: relative; overflow: hidden; transition: background 0.3s; }
+  .problem-item:hover { background: var(--card); }
+  .problem-item::before { content: attr(data-num); position: absolute; top: -10px; right: 24px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 5rem; color: rgba(59,130,246,0.06); line-height: 1; pointer-events: none; }
+  .problem-icon { font-size: 1.4rem; margin-bottom: 16px; }
+  .problem-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); margin-bottom: 10px; }
+  .problem-text { font-size: 0.92rem; color: var(--muted); line-height: 1.7; }
+
+  /* SYSTEMS */
+  #systems { padding: 120px 0; background: var(--surface); }
+  .systems-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 64px; flex-wrap: wrap; gap: 24px; }
+  .system-card { background: var(--bg); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; transition: border-color 0.3s; }
+  .system-card:hover { border-color: rgba(59,130,246,0.5); }
+  .system-card-header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; padding: 28px 36px; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; transition: border-color 0.2s, background 0.2s; }
+  .system-card-header:hover { background: rgba(59,130,246,0.04); }
+  .system-card.active .system-card-header { border-bottom-color: var(--border); }
+  .system-num { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--blue); letter-spacing: 0.1em; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); padding: 4px 10px; white-space: nowrap; }
+  .system-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--accent); }
+  .system-toggle { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--blue); letter-spacing: 0.1em; white-space: nowrap; padding: 6px 12px; border: 1px solid rgba(59,130,246,0.25); background: rgba(59,130,246,0.06); }
+  .system-body { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .system-body-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 36px; }
+  .system-problem { font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .system-problem strong { color: var(--text); font-weight: 500; }
+  .sub-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--blue); text-transform: uppercase; margin-bottom: 12px; }
+  .outcomes-list { list-style: none; }
+  .outcomes-list li { font-size: 0.9rem; color: var(--muted); padding: 8px 0; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(30,45,66,0.5); }
+  .outcomes-list li::before { content: '→'; color: var(--cyan); flex-shrink: 0; margin-top: 1px; }
+  .prompt-box { background: #060A10; border: 1px solid var(--border); border-left: 3px solid var(--blue); padding: 24px; font-family: 'DM Mono', monospace; font-size: 0.72rem; line-height: 1.85; color: #7DD3FC; white-space: pre-wrap; overflow-x: auto; }
+  .kw { color: #67E8F9; font-weight: 500; }
+  .why-box { margin-top: 20px; background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.15); padding: 16px 20px; font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+  .why-box strong { color: var(--blue); }
+
+  /* PROCESS */
+  #process { padding: 120px 0; }
+  .process-steps { margin-top: 64px; }
+  .process-step { display: grid; grid-template-columns: 80px 1fr; gap: 32px; }
+  .step-num-col { display: flex; flex-direction: column; align-items: center; }
+  .step-circle { width: 56px; height: 56px; background: var(--blue); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; flex-shrink: 0; }
+  .step-line { width: 1px; flex: 1; background: linear-gradient(to bottom, var(--blue), var(--border)); min-height: 48px; }
+  .process-step:last-child .step-line { display: none; }
+  .step-content { padding: 0 0 56px; }
+  .step-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; padding-top: 14px; }
+  .step-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.75; max-width: 560px; }
+
+  /* PRICING */
+  #pricing { padding: 120px 0; background: var(--surface); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 64px; }
+  .price-card { background: var(--bg); padding: 40px 36px; display: flex; flex-direction: column; transition: background 0.3s; }
+  .price-card:hover { background: var(--card); }
+  .price-card.featured { background: var(--blue-dim); }
+  .price-card.featured:hover { background: #1E40AF; }
+  .price-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan); background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25); padding: 4px 10px; margin-bottom: 24px; width: fit-content; }
+  .price-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.3rem; color: var(--accent); margin-bottom: 8px; }
+  .price-tagline { font-size: 0.85rem; color: var(--muted); margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .price-amount { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.8rem; color: var(--accent); margin-bottom: 28px; line-height: 1; }
+  .price-amount span { font-size: 1rem; font-weight: 400; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+  .price-features { list-style: none; flex: 1; margin-bottom: 36px; }
+  .price-features li { font-size: 0.88rem; color: var(--muted); padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; align-items: flex-start; }
+  .price-features li::before { content: '✓'; color: var(--cyan); flex-shrink: 0; font-weight: 600; }
+  .price-card.featured .price-features li { color: rgba(219,234,254,0.85); }
+  .price-card.featured .price-tagline { color: rgba(147,197,253,0.7); }
+  .price-btn { width: 100%; text-align: center; display: block; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 15px 32px; transition: all 0.2s; }
+  .price-btn-outline { color: var(--muted); border: 1px solid var(--border); background: none; }
+  .price-btn-outline:hover { color: var(--text); border-color: var(--blue); }
+  .price-btn-fill { background: white; color: var(--blue-dim); border: none; }
+  .price-btn-fill:hover { background: var(--cyan); color: #fff; transform: translateY(-2px); }
+
+  /* WHY */
+  #why { padding: 120px 0; }
+  .why-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 64px; }
+  .why-item { background: var(--surface); padding: 40px; transition: background 0.3s; }
+  .why-item:hover { background: var(--card); }
+  .why-icon { font-size: 1.6rem; margin-bottom: 16px; }
+  .why-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); margin-bottom: 10px; }
+  .why-text { font-size: 0.9rem; color: var(--muted); line-height: 1.75; }
+
+  /* CTA */
+  #contact { padding: 120px 0; background: var(--surface); text-align: center; position: relative; overflow: hidden; }
+  #contact::before { content:''; position:absolute; width:700px; height:700px; border-radius:50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 65%); top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+  .cta-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); margin-bottom: 20px; }
+  .cta-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem,5vw,3.5rem); line-height: 1.1; color: var(--accent); margin-bottom: 20px; }
+  .cta-sub { color: var(--muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 48px; line-height: 1.75; }
+  .contact-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .contact-link { display: flex; align-items: center; gap: 10px; font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--text); text-decoration: none; border: 1px solid var(--border); padding: 14px 28px; transition: all 0.25s; cursor: pointer; background: none; }
+  .contact-link:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.2); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 28px 60px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
+  .footer-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem; color: var(--muted); letter-spacing: 0.06em; }
+  .footer-note { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--border); letter-spacing: 0.08em; }
+
+  /* REVEAL */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; } .nav-links { display: none; } .container { padding: 0 24px; }
+    h1 { font-size: 2.6rem; } .problem-grid, .why-grid { grid-template-columns: 1fr; }
+    .system-body-inner { grid-template-columns: 1fr; } .pricing-grid { grid-template-columns: 1fr; }
+    .hero-stats { grid-template-columns: 1fr; width: 100%; }
+    .stat { border-right: none; border-bottom: 1px solid var(--border); } .stat:last-child { border-bottom: none; }
+    footer { flex-direction: column; gap: 12px; padding: 24px; text-align: center; }
+    .system-card-header { grid-template-columns: auto 1fr; } .system-toggle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <p class="modal-label">Get in touch</p>
+    <h3 class="modal-title">Let's work together</h3>
+    <p class="modal-desc">Send me a message about your biggest workflow challenge and I'll tell you exactly what I'd build for you — no pitch, no pressure.</p>
+    <div class="modal-row">
+      <span>📧</span>
+      <span class="modal-row-label"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="45362d2c333036717570727d052228242c296b262a28">[email&#160;protected]</a></span>
+      <button class="copy-btn" id="copyEmailBtn">COPY</button>
+    </div>
+    <a href="https://www.linkedin.com/in/shivu-s-91828b373" target="_blank" class="modal-linkedin">
+      <span>🔗</span>
+      <span>linkedin.com/in/shivu-s-91828b373</span>
+      <em>↗</em>
+    </a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SHIVA<span>SRI</span></div>
+  <ul class="nav-links">
+    <li><a href="#problems">Problem</a></li>
+    <li><a href="#systems">Systems</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <button class="nav-cta open-modal">Work With Me</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div><div class="hero-glow-2"></div>
+  <div class="container">
+    <div class="hero-tag">AI Workflow Specialist &amp; Prompt Systems Engineer</div>
+    <h1>Stop doing<br><em>manually</em><br>what AI can do.</h1>
+    <p class="hero-sub">I build <strong>custom AI prompt systems</strong> for startup founders — structured workflows that eliminate the repetitive grind so you can focus on actually growing your company.</p>
+    <div class="hero-actions">
+      <button class="btn-primary open-modal">Get Your AI System →</button>
+
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">3</span><span class="stat-label">Core AI Systems</span></div>
+      <div class="stat"><span class="stat-num">5×</span><span class="stat-label">Faster Content Output</span></div>
+      <div class="stat"><span class="stat-num">48hr</span><span class="stat-label">Avg. Turnaround</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMS -->
+<section id="problems">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-title">Sound familiar?</h2>
+      <p class="section-desc">Most founders burn hours on tasks that should take minutes — because no one built them the right system.</p>
+    </div>
+    <div class="problem-grid reveal">
+      <div class="problem-item" data-num="01"><div class="problem-icon">✍️</div><div class="problem-title">Blank page every week</div><p class="problem-text">You know you should post on LinkedIn. You sit down to write. An hour later you have nothing. Generic content that gets no traction.</p></div>
+      <div class="problem-item" data-num="02"><div class="problem-icon">🔍</div><div class="problem-title">Competitor research chaos</div><p class="problem-text">You spend 3–5 hours pulling competitor data, it ends up scattered across browser tabs, and you never actually use the insights.</p></div>
+      <div class="problem-item" data-num="03"><div class="problem-icon">📄</div><div class="problem-title">Marketing copy that converts nobody</div><p class="problem-text">Your landing page sounds like every other SaaS. You've rewritten it five times. It still doesn't say what makes you different.</p></div>
+      <div class="problem-item" data-num="04"><div class="problem-icon">⏱️</div><div class="problem-title">AI tools, zero consistency</div><p class="problem-text">You've tried ChatGPT and Claude. Sometimes they work. But outputs are inconsistent and you spend more time editing than creating.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SYSTEMS -->
+<section id="systems">
+  <div class="container">
+    <div class="systems-header reveal">
+      <div>
+        <div class="section-label">Sample Work</div>
+        <h2 class="section-title">Real systems.<br>Real results.</h2>
+      </div>
+      <p class="section-desc" style="max-width:340px;font-size:0.9rem;">Click any card to expand it and see the full prompt system. Client deliverables include documentation and a live walkthrough.</p>
+    </div>
+
+    <!-- SYS 01 -->
+    <div class="system-card reveal">
+      <div class="system-card-header">
+        <span class="system-num">SYS-01</span>
+        <span class="system-title">LinkedIn Founder Content Engine</span>
+        <span class="system-toggle">[ CLICK TO EXPAND ]</span>
+      </div>
+      <div class="system-body">
+        <div class="system-body-inner">
+          <div>
+            <p class="system-problem"><strong>Problem:</strong> Founders know they should post consistently but face a blank page every week — and generic posts get ignored.</p>
+            <p class="sub-label">Outcomes</p>
+            <ul class="outcomes-list">
+              <li>10 ready-to-post drafts in under 30 minutes</li>
+              <li>Consistent founder voice across every post</li>
+              <li>Story-driven format built for real engagement</li>
+              <li>Never sounds like generic AI output</li>
+            </ul>
+            <div class="why-box"><strong>Why it works:</strong> Structured constraints force specificity. The system prevents AI defaulting to vague language — every post comes out with a real story and a real point.</div>
+          </div>
+          <div>
+            <p class="sub-label">Example Prompt</p>
+            <div class="prompt-box"><span class="kw">ROLE:</span> You are a startup founder writing
+authentic LinkedIn content.
+
+<span class="kw">TASK:</span> Write a post about
+[FOUNDER EXPERIENCE/LESSON].
+
+<span class="kw">FORMAT:</span>
+  Line 1: Hook — stops the scroll
+  Lines 2–5: Specific story from
+             building your company
+  Lines 6–8: Core lesson, stated
+             simply and directly
+  Lines 9–10: One actionable takeaway
+  Line 11: Question that invites reply
+
+<span class="kw">CONSTRAINTS:</span>
+  - Tone: conversational, honest
+  - Length: 130–160 words
+  - Max 3 hashtags, relevant only
+  - Never start with "I" or
+    "Excited to share"
+
+<span class="kw">INPUT:</span> [Paste your experience here]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYS 02 -->
+    <div class="system-card reveal">
+      <div class="system-card-header">
+        <span class="system-num">SYS-02</span>
+        <span class="system-title">Competitor Research Automation</span>
+        <span class="system-toggle">[ CLICK TO EXPAND ]</span>
+      </div>
+      <div class="system-body">
+        <div class="system-body-inner">
+          <div>
+            <p class="system-problem"><strong>Problem:</strong> Founders spend 3–5 hours on competitor research that ends up scattered and never organized into anything useful.</p>
+            <p class="sub-label">Outcomes</p>
+            <ul class="outcomes-list">
+              <li>Structured competitor analysis in under 20 minutes</li>
+              <li>Consistent format for every company researched</li>
+              <li>Strategic insights, not just surface-level facts</li>
+              <li>Gap analysis tailored to your startup's position</li>
+            </ul>
+            <div class="why-box"><strong>Why it works:</strong> Giving AI your startup context forces it to frame insights relative to your actual situation. The gap section turns raw research into real strategy.</div>
+          </div>
+          <div>
+            <p class="sub-label">Example Prompt</p>
+            <div class="prompt-box"><span class="kw">ROLE:</span> You are a startup market
+intelligence analyst.
+
+<span class="kw">TASK:</span> Analyze [COMPETITOR NAME]
+as a competitor to my startup.
+
+<span class="kw">PROVIDE (with headers):</span>
+  1. Core Product — what they sell
+     and who it's for
+  2. Pricing Model — tiers, billing
+  3. Key Differentiators — their
+     claimed strengths
+  4. Weaknesses — real complaints
+     from G2/Reddit
+  5. ICP — their ideal customer
+  6. Gap Opportunity — where I
+     could win against them
+
+<span class="kw">MY STARTUP:</span> [2–3 sentences
+about your product]
+
+<span class="kw">OUTPUT:</span> Use structured tables
+where possible.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYS 03 -->
+    <div class="system-card reveal">
+      <div class="system-card-header">
+        <span class="system-num">SYS-03</span>
+        <span class="system-title">SaaS Landing Page Copy Generator</span>
+        <span class="system-toggle">[ CLICK TO EXPAND ]</span>
+      </div>
+      <div class="system-body">
+        <div class="system-body-inner">
+          <div>
+            <p class="system-problem"><strong>Problem:</strong> Founders spend weeks on copy or pay agencies thousands — and still get messaging that doesn't convert.</p>
+            <p class="sub-label">Outcomes</p>
+            <ul class="outcomes-list">
+              <li>Full landing page copy draft in one session</li>
+              <li>3 headline variants ready for A/B testing</li>
+              <li>Feature copy that sells outcomes, not features</li>
+              <li>CTA options that go beyond "Get Started"</li>
+            </ul>
+            <div class="why-box"><strong>Why it works:</strong> The product brief forces founders to clarify positioning first. Feature → benefit framing ensures copy sells outcomes — the #1 mistake SaaS pages make.</div>
+          </div>
+          <div>
+            <p class="sub-label">Example Prompt</p>
+            <div class="prompt-box"><span class="kw">ROLE:</span> You are a direct-response
+SaaS copywriter.
+
+<span class="kw">PRODUCT BRIEF:</span>
+  Name: [PRODUCT NAME]
+  One-liner: [What it does]
+  Target Customer: [Persona]
+  Top 3 Pain Points: [List them]
+  Key Features: [List top 3]
+  Main Competitor: [Name]
+
+<span class="kw">DELIVERABLES:</span>
+  H1: 3 headlines (under 10 words,
+      outcome-focused)
+  Subheadline: Expands H1, 1–2 lines
+  Problem Block: 2–3 sentences
+  Feature → Benefit: "So you can..."
+  CTA: 3 button copy options
+       (not "Get Started")
+
+<span class="kw">TONE:</span> Clear, confident.
+Write for a skeptic.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">My 5-step process</h2>
+      <p class="section-desc">Every engagement is structured, documented, and leaves you fully independent.</p>
+    </div>
+    <div class="process-steps" style="margin-top:64px;">
+      <div class="process-step reveal"><div class="step-num-col"><div class="step-circle">01</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Discovery Call (30 min)</div><p class="step-desc">We map your current workflow, your biggest time drains, and exactly what you need AI to do for you.</p></div></div>
+      <div class="process-step reveal"><div class="step-num-col"><div class="step-circle">02</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Workflow Audit</div><p class="step-desc">I identify which tasks are best suited for AI automation and prioritize by the impact they'll have on your day.</p></div></div>
+      <div class="process-step reveal"><div class="step-num-col"><div class="step-circle">03</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">System Design & Build</div><p class="step-desc">I build your custom prompt system — tested, structured, documented so it works consistently every time.</p></div></div>
+      <div class="process-step reveal"><div class="step-num-col"><div class="step-circle">04</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Delivery & Live Walkthrough</div><p class="step-desc">You receive your full prompt library and usage guide. We do a live walkthrough so you're confident from day one.</p></div></div>
+      <div class="process-step reveal"><div class="step-num-col"><div class="step-circle">05</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Revision Round</div><p class="step-desc">One round of revisions included in every package. We fine-tune based on your real-world feedback.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Investment</div>
+      <h2 class="section-title">Simple, transparent pricing</h2>
+      <p class="section-desc">All packages include a discovery call and full documentation. Pick the one that matches where you are right now.</p>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <span class="price-badge">Starter</span>
+        <div class="price-name">AI Content Workflow</div>
+        <div class="price-tagline">For founders who need a content system fast</div>
+        <div class="price-amount">$100 <span>one-time</span></div>
+        <ul class="price-features">
+          <li>1 custom prompt system (LinkedIn, newsletter, or emails)</li>
+          <li>5–8 ready-to-use prompt templates</li>
+          <li>Full usage documentation</li>
+          <li>30-min delivery walkthrough</li>
+        </ul>
+        <button class="price-btn price-btn-outline open-modal">Get Started →</button>
+      </div>
+      <div class="price-card featured">
+        <span class="price-badge">Most Popular</span>
+        <div class="price-name">Startup AI Productivity</div>
+        <div class="price-tagline">For founders automating multiple workflows</div>
+        <div class="price-amount">$150 <span>one-time</span></div>
+        <ul class="price-features">
+          <li>3 custom prompt systems (content + research + marketing)</li>
+          <li>15–20 ready-to-use prompt templates</li>
+          <li>Full prompt library with documentation</li>
+          <li>60-min walkthrough + 1 revision round</li>
+          <li>7-day email support post-delivery</li>
+        </ul>
+        <button class="price-btn price-btn-fill open-modal">Get Started →</button>
+      </div>
+      <div class="price-card">
+        <span class="price-badge">Custom</span>
+        <div class="price-name">Full AI Workflow Build</div>
+        <div class="price-tagline">For founders who want everything tailored</div>
+        <div class="price-amount">$200+ <span>custom</span></div>
+        <ul class="price-features">
+          <li>Unlimited scope — built for your exact needs</li>
+          <li>Full prompt library across all workflows</li>
+          <li>Team-ready documentation</li>
+          <li>90-min walkthrough + 2 revision rounds</li>
+          <li>14-day email support</li>
+        </ul>
+        <button class="price-btn price-btn-outline open-modal">Let's Talk →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Why Me</div>
+      <h2 class="section-title">What makes this different</h2>
+    </div>
+    <div class="why-grid reveal">
+      <div class="why-item"><div class="why-icon">🎯</div><div class="why-title">Systems, not one-off prompts</div><p class="why-text">Everything I build is designed to be reused hundreds of times — not just work once. You get a library, not a gimmick.</p></div>
+      <div class="why-item"><div class="why-icon">⚡</div><div class="why-title">Fast turnaround</div><p class="why-text">Most projects delivered within 3–5 business days. No weeks of back-and-forth. Get what you need and get back to building.</p></div>
+      <div class="why-item"><div class="why-icon">📋</div><div class="why-title">You own everything</div><p class="why-text">Full documentation means you never depend on me to run your own systems. Everything is yours and fully transferable.</p></div>
+      <div class="why-item"><div class="why-icon">🌍</div><div class="why-title">Available globally</div><p class="why-text">Based in India, I work with founders across all time zones. Async-first, quick to respond, zero friction.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact">
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="reveal">
+      <p class="cta-label">Ready to start?</p>
+      <h2 class="cta-title">Let's build your<br>AI system.</h2>
+      <p class="cta-sub">Send me a message about your biggest workflow challenge and I'll tell you exactly what I'd build for you — no pitch, no pressure.</p>
+      <div class="contact-links">
+        <button class="contact-link open-modal">📧 &nbsp;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c2b1aaabb4b7b1f6f2f7f5fa82a5afa3abaeeca1adaf">[email&#160;protected]</a></button>
+        <a href="https://www.linkedin.com/in/shivu-s-91828b373" target="_blank" class="contact-link">🔗 &nbsp;LinkedIn Profile ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SHIVASRI — AI Workflow Specialist</div>
+  <div class="footer-note">INDIA · AVAILABLE GLOBALLY · 2025</div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+(function () {
+
+  /* ── MODAL ── */
+  var overlay  = document.getElementById('contactModal');
+  var closeBtn = document.getElementById('modalClose');
+  var copyBtn  = document.getElementById('copyEmailBtn');
+
+  function openModal()  { overlay.classList.add('open');    }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  document.querySelectorAll('.open-modal').forEach(function (el) {
+    el.addEventListener('click', openModal);
+  });
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  copyBtn.addEventListener('click', function () {
+    var email = 'shivus40578@gmail.com';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(email).then(function () {
+        copyBtn.textContent = 'COPIED!';
+        copyBtn.classList.add('copied');
+        setTimeout(function () { copyBtn.textContent = 'COPY'; copyBtn.classList.remove('copied'); }, 2000);
+      });
+    } else {
+      /* fallback for environments where clipboard API is blocked */
+      var ta = document.createElement('textarea');
+      ta.value = email; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copyBtn.textContent = 'COPIED!';
+      setTimeout(function () { copyBtn.textContent = 'COPY'; }, 2000);
+    }
+  });
+
+  /* ── SYSTEM CARD ACCORDIONS ── */
+  document.querySelectorAll('.system-card').forEach(function (card) {
+    var header = card.querySelector('.system-card-header');
+    var body   = card.querySelector('.system-body');
+    var toggle = card.querySelector('.system-toggle');
+
+    header.addEventListener('click', function () {
+      var isOpen = card.classList.contains('active');
+
+      /* close all */
+      document.querySelectorAll('.system-card').forEach(function (c) {
+        c.classList.remove('active');
+        c.querySelector('.system-body').style.maxHeight = '0';
+        var t = c.querySelector('.system-toggle');
+        if (t) t.textContent = '[ CLICK TO EXPAND ]';
+      });
+
+      /* open clicked one if it was closed */
+      if (!isOpen) {
+        card.classList.add('active');
+        /* measure inner height then set */
+        var inner = body.querySelector('.system-body-inner');
+        body.style.maxHeight = (inner ? inner.scrollHeight + 72 : 800) + 'px';
+        if (toggle) toggle.textContent = '[ COLLAPSE ]';
+        setTimeout(function () {
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 80);
+      }
+    });
+  });
+
+  /* ── SCROLL REVEAL ── */
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.
